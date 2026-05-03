@@ -3,7 +3,7 @@ name: LINE 班群每日提醒通知
 on:
   schedule:
     # 每天台灣時間 06:30 執行（UTC+8 → UTC 22:30 前一天）
-    - cron: '30 22 * * *'
+    - cron: '0 0 * * *'
   # 允許手動觸發（測試用）
   workflow_dispatch:
 
