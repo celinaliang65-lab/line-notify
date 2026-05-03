@@ -15,7 +15,7 @@ line-notify-system/
 │   └── LINE班群提醒排程.xlsx   ← 提醒資料（日常只需維護這個）
 ├── notify.py                  ← 主程式（每天自動執行）
 ├── fetch_groups.py            ← 一次性工具：自動抓取群組名稱填入 Excel
-├── requirements.txt
+├── requirements.txt           ← Python 套件清單
 └── README.md
 ```
 
@@ -42,18 +42,19 @@ line-notify-system/
 
 Group ID 無法從 LINE App 直接看到，需要透過 Webhook 取得：
 
-1. 在 LINE Developers → Messaging API → **Webhook URL** 填入任一可接收 POST 的測試網址
-   （推薦使用 [Webhook.site](https://webhook.site) 暫時接收）
-2. 開啟「Use webhook」
-3. 在班群內發任意一則訊息
-4. 到 Webhook.site 查看收到的 JSON，找到以下欄位：
+1. 前往 [https://webhook.site](https://webhook.site)
+   取得專屬網址（例如 `https://webhook.site/xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`）
+2. 到 LINE Developers → Messaging API → **Webhook URL** 填入該網址
+3. 開啟「Use webhook」（不需要點 Verify，出現錯誤可忽略）
+4. 在班群內發任意一則訊息
+5. 回到 webhook.site，點左側收到的請求，找到以下欄位：
    ```json
    "source": {
      "type": "group",
      "groupId": "C1234567890abcdef..."
    }
    ```
-5. 複製 `groupId` 的值，貼入 Excel「班群設定」工作表的「LINE Group ID」欄位
+6. 複製 `groupId` 的值，貼入 Excel「班群設定」工作表的「LINE Group ID」欄位
 
 ---
 
@@ -99,12 +100,12 @@ git push
 
 | 欄位 | 說明 | 誰填 |
 |------|------|------|
-| 提醒類別 | 例：作業繳交、上台規範、公告 | 你 |
+| 提醒類別 | 作業繳交、上台規範、公告（影響 badge 顏色） | 你 |
 | 班群名稱 | 對照「班群設定」工作表填入，純顯示用 | 你 |
 | 目標班群 ID | LINE Group ID（每列可填不同班群） | 你 |
 | 提醒日期 | 格式 YYYY/M/D，當天 06:30 自動發送 | 你 |
-| 訊息標題 | LINE 推播的標題 | 你 |
-| 提醒內容細節 | LINE 推播的完整內容 | 你 |
+| 訊息標題 | LINE 推播卡片的標題 | 你 |
+| 提醒內容細節 | LINE 推播卡片的完整內容 | 你 |
 | 備註 | 補充說明，不會被發送 | 你 |
 | 已發送 | ⚠️ 請勿手動修改，程式自動填入 TRUE | 程式 |
 | 發送時間 | ⚠️ 請勿手動修改，程式自動填入時間戳 | 程式 |
@@ -136,6 +137,30 @@ GitHub Actions 會在每天 **06:30（台灣時間）** 自動執行。
 
 ---
 
+## 📱 通知卡片樣式
+
+LINE 推播為卡片格式，包含以下資訊：
+
+| 區塊 | 內容 |
+|------|------|
+| 頂部左側 | 提醒類別 badge（顏色依類別自動對應） |
+| 頂部右側 | 訊息標題 |
+| 分隔線後 | 提醒日期（灰色小字） |
+| 底部 | 提醒內容細節 |
+
+**類別 badge 顏色對照：**
+
+| 提醒類別 | 顏色 |
+|---------|------|
+| 作業繳交 | 藍色 |
+| 上台規範 | 橘色 |
+| 公告 | 綠色 |
+| 其他（自訂） | 灰色 |
+
+> 💡 需要新增類別顏色，請修改 `notify.py` 中的 `CATEGORY_STYLE` 字典。
+
+---
+
 ## 🧪 手動測試
 
 在 GitHub repo 頁面：**Actions → LINE 班群每日提醒通知 → Run workflow**
@@ -148,3 +173,4 @@ GitHub Actions 會在每天 **06:30（台灣時間）** 自動執行。
 - LINE Messaging API 免費版每月有 **200 則**免費推播額度，超過需付費
 - Excel 更新後需 **commit & push** 到 GitHub 才會生效
 - GitHub Actions 使用 UTC 時間，設定為 `22:30 UTC` = 台灣時間 `06:30`
+- Webhook.site 的 Verify 失敗可忽略，不影響取得 Group ID
