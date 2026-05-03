@@ -1,0 +1,39 @@
+name: LINE 班群每日提醒通知
+
+on:
+  schedule:
+    # 每天台灣時間 06:30 執行（UTC+8 → UTC 22:30 前一天）
+    - cron: '30 22 * * *'
+  # 允許手動觸發（測試用）
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # 允許回寫 Excel 的已發送欄位
+
+    steps:
+      - name: 取得程式碼
+        uses: actions/checkout@v4
+
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 執行 LINE 通知
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+        run: python notify.py
+
+      - name: 回寫 Excel（已發送欄位）到 GitHub
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/LINE班群提醒排程.xlsx
+          git diff --cached --quiet || git commit -m "✅ $(date '+%Y/%m/%d') 自動更新已發送狀態"
+          git push
