@@ -144,6 +144,8 @@ def run():
     df = pd.read_excel(EXCEL_PATH, sheet_name=SHEET_NAME, header=0, skiprows=[1], dtype=str)
     df.columns = df.columns.str.strip()
     df[COL_DATE] = pd.to_datetime(df[COL_DATE], errors="coerce").dt.date
+    print(f"📋 讀到的欄位：{list(df.columns)}")
+    print(f"📋 前3列資料：\n{df.head(3)}")
 
     # 篩選：今天 且 已發送為空
     mask = (
